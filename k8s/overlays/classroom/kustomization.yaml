@@ -2,7 +2,11 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: mealdash
 resources:
-  - ../../base
+  # Namespace and RBAC are instructor bootstrap resources. The GitHub deploy
+  # role is namespaced and must not need cluster-scoped or RBAC permissions.
+  - ../../base/deployment.yaml
+  - ../../base/service.yaml
+  - ../../base/ingress.yaml
 images:
   - name: mealdash
     newName: REPLACE_WITH_ECR_REPOSITORY_URL
