@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MealDash - good food, moving fast{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<div class="topline">A little joy is on the way <span>Freshly made. Delivered with care.</span></div>
+<header class="nav-wrap"><a class="brand" href="{{ url_for('home') }}"><span class="brand-mark">m</span><span>meal<span class="brand-accent">dash</span><small>GOOD FOOD, MOVING FAST</small></span></a>
+  <nav><a href="{{ url_for('home') }}#restaurants">Explore</a><a href="{{ url_for('staff_dashboard') if staff_authenticated else url_for('staff_login') }}">Kitchen staff</a><a class="cart-link" href="{{ url_for('cart_page') }}">Bag <b>{{ cart_count }}</b></a></nav>
+</header>
+<main class="page">
+  {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="flash-stack">{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}{% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="footer"><div class="footer-brand">meal<span>dash</span></div><div>Made for hungry humans. <span>Demo checkout only - no payment is collected.</span></div><a href="{{ url_for('staff_login') }}">Kitchen sign in</a></footer>
+</body>
+</html>
