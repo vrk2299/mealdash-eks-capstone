@@ -5,7 +5,7 @@ command -v aws >/dev/null && command -v kubectl >/dev/null || { echo "Install AW
 tmpdir="$(mktemp -d)"; chmod 700 "$tmpdir"
 trap 'rm -rf "$tmpdir"; unset db_password staff_password app_key' EXIT
 secret_text="$(aws secretsmanager get-secret-value --secret-id "$1" --query SecretString --output text)"
-python3 -c 'import json,sys; print(json.loads(sys.stdin.read())["password"])' <<<"$secret_text" > "$tmpdir/db-password"
+python3 -c 'import json,sys; sys.stdout.write(json.loads(sys.stdin.read())["password"])' <<<"$secret_text" > "$tmpdir/db-password"
 unset secret_text; chmod 600 "$tmpdir/db-password"
 read -r -s -p "Choose the demo kitchen staff password: " staff_password; echo
 if [[ ${#staff_password} -lt 12 ]]; then echo "Use at least 12 characters." >&2; exit 2; fi
