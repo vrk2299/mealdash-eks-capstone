@@ -195,7 +195,7 @@ resource "aws_iam_role" "github_deployer" {
 data "aws_iam_policy_document" "github_permissions" {
   statement {
     sid = "ECRPush"
-    actions = ["ecr:BatchCheckLayerAvailability", "ecr:CompleteLayerUpload", "ecr:InitiateLayerUpload", "ecr:PutImage", "ecr:UploadLayerPart"]
+    actions = ["ecr:BatchCheckLayerAvailability", "ecr:BatchGetImage", "ecr:CompleteLayerUpload", "ecr:InitiateLayerUpload", "ecr:PutImage", "ecr:UploadLayerPart"]
     resources = [aws_ecr_repository.app.arn]
   }
   statement {
