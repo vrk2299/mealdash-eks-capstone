@@ -50,3 +50,13 @@ variable "github_repository" {
   type        = string
   default     = "mealdash-eks-capstone"
 }
+
+variable "github_owner_id" {
+  description = "Immutable numeric GitHub owner ID used in GitHub OIDC subject claims."
+  type        = string
+}
+
+variable "github_repository_id" {
+  description = "Immutable numeric GitHub repository ID used in GitHub OIDC subject claims."
+  type        = string
+}

@@ -42,15 +42,16 @@ AWS resources are not created until the launch script is run. EKS, RDS, NAT Gate
 
 On the instructor host install AWS CLI v2, Terraform 1.5.7+, `kubectl`, Helm 3, `eksctl`, `curl`, `openssl`, Python 3, Docker, and Git. Configure an AWS identity authorized to create the listed resources and pass the EKS roles. Do not give students permanent administrator access.
 
-Create a **separate public repository** named `mealdash-eks-capstone` under `vrk2299` and push its `main` branch. Copy `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars`; keep that file private (it is ignored by Git).
+Create a **separate public repository** named `mealdash-eks-capstone` under `vrk2299` and push its `main` branch. GitHub repositories created after July 15, 2026 use immutable owner and repository IDs in their OIDC subject. Copy `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars`, retrieve those IDs, and keep the tfvars file private (it is ignored by Git).
 
 ```bash
 git clone https://github.com/vrk2299/mealdash-eks-capstone.git
 cd mealdash-eks-capstone
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+bash scripts/get-github-ids.sh vrk2299 mealdash-eks-capstone
 ```
 
-Run the guarded setup script. It creates or reuses a versioned, private S3 Terraform state bucket, shows a Terraform plan, and requires the phrase `CREATE MEALDASH` before applying. Reusing the backend prevents a fresh clone from losing track of existing AWS resources.
+Copy the two values printed by the helper into `terraform/terraform.tfvars` as `github_owner_id` and `github_repository_id`. Run the guarded setup script. It creates or reuses a versioned, private S3 Terraform state bucket, shows a Terraform plan, and requires the phrase `CREATE MEALDASH` before applying. Reusing the backend prevents a fresh clone from losing track of existing AWS resources.
 
 ```bash
 bash scripts/start-lab.sh

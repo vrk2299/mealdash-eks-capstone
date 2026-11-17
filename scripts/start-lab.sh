@@ -3,8 +3,8 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 for tool in aws terraform kubectl helm eksctl curl python3 openssl; do command -v "$tool" >/dev/null || { echo "Missing required command: $tool" >&2; exit 2; }; done
-if [[ ! -f terraform/terraform.tfvars ]]; then
-  echo "Create terraform/terraform.tfvars from the example first." >&2
+if [[ ! -f terraform/terraform.tfvars ]] || grep -q 'REPLACE_WITH' terraform/terraform.tfvars; then
+  echo "Create terraform/terraform.tfvars from the example and add the GitHub numeric IDs first." >&2
   exit 2
 fi
 aws sts get-caller-identity
