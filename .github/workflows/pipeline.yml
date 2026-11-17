@@ -90,6 +90,6 @@ jobs:
           image_name="${IMAGE_URI%:*}"
           image_tag="${IMAGE_URI##*:}"
           sed -i "s|REPLACE_WITH_ECR_REPOSITORY_URL|$image_name|; s|newTag: classroom|newTag: $image_tag|" k8s/overlays/classroom/kustomization.yaml
-          kubectl apply -k k8s/overlays/classroom
+          kubectl kustomize k8s/overlays/classroom --load-restrictor=LoadRestrictionsNone | kubectl apply -f -
           kubectl rollout status deployment/mealdash -n mealdash --timeout=5m
           kubectl get ingress mealdash -n mealdash
