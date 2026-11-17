@@ -18,6 +18,10 @@ This lab is deliberately small and disposable, not production food-commerce soft
 - Sign in to the kitchen order board and advance a customer's order one state at a time.
 - Trace a code change through GitHub Actions, immutable ECR image publishing, and an EKS rolling update.
 
+## Student launch guide
+
+For a step-by-step beginner walkthrough, see the [MealDash beginner launch guide](docs/MEALDASH_BEGINNER_LAUNCH_GUIDE.md) or download the [printable PDF](output/pdf/MealDash_Beginner_Launch_Guide.pdf). It covers AWS prerequisites, a fresh launch, GitHub Actions setup, verification, troubleshooting, relaunch after cleanup, and safe teardown.
+
 ## Run locally first
 
 Requirements: Docker Desktop with Docker Compose.
