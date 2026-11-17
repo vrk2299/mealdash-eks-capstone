@@ -3,6 +3,7 @@ set -euo pipefail
 cluster="${1:-mealdash}"
 region="${AWS_REGION:-ap-south-1}"
 account_id="$(aws sts get-caller-identity --query Account --output text)"
+vpc_id="$(aws eks describe-cluster --name "$cluster" --region "$region" --query cluster.resourcesVpcConfig.vpcId --output text)"
 policy_name="AWSLoadBalancerControllerIAMPolicy-${cluster}"
 role_name="${cluster}-aws-load-balancer-controller"
 policy_arn="arn:aws:iam::${account_id}:policy/${policy_name}"
@@ -15,5 +16,5 @@ if ! aws iam get-policy --policy-arn "$policy_arn" >/dev/null 2>&1; then aws iam
 eksctl create iamserviceaccount --cluster "$cluster" --region "$region" --namespace kube-system --name "aws-load-balancer-controller-${cluster}" --role-name "$role_name" --attach-policy-arn "$policy_arn" --approve --override-existing-serviceaccounts
 helm repo add eks https://aws.github.io/eks-charts >/dev/null
 helm repo update eks >/dev/null
-helm upgrade --install "aws-load-balancer-controller-${cluster}" eks/aws-load-balancer-controller --namespace kube-system --version 1.14.0 --set "clusterName=$cluster" --set "serviceAccount.create=false" --set "serviceAccount.name=aws-load-balancer-controller-${cluster}" --set "fullnameOverride=${cluster}-aws-load-balancer-controller" --wait --timeout 5m
+helm upgrade --install "aws-load-balancer-controller-${cluster}" eks/aws-load-balancer-controller --namespace kube-system --version 1.14.0 --set "clusterName=$cluster" --set "region=$region" --set "vpcId=$vpc_id" --set "serviceAccount.create=false" --set "serviceAccount.name=aws-load-balancer-controller-${cluster}" --set "fullnameOverride=${cluster}-aws-load-balancer-controller" --wait --timeout 5m
 kubectl rollout status deployment/"${cluster}-aws-load-balancer-controller" -n kube-system --timeout=5m

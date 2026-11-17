@@ -3,13 +3,14 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 for tool in aws terraform kubectl helm eksctl curl python3 openssl; do command -v "$tool" >/dev/null || { echo "Missing required command: $tool" >&2; exit 2; }; done
-if [[ ! -f terraform/terraform.tfvars ]] || grep -q 'REPLACE_WITH' terraform/terraform.tfvars; then
-  echo "Create terraform/terraform.tfvars from the example and add the GitHub numeric IDs first." >&2
+if [[ ! -f terraform/terraform.tfvars ]]; then
+  echo "Create terraform/terraform.tfvars from the example first." >&2
   exit 2
 fi
 aws sts get-caller-identity
 cd terraform
-terraform init
+bash "$root/scripts/ensure-state-backend.sh"
+bash "$root/scripts/adopt-existing-github-role.sh"
 terraform validate
 terraform plan -out=mealdash.tfplan
 echo "Review the Terraform plan above. This provisions a separate EKS, RDS, ECR and VPC stack and incurs AWS charges."
@@ -36,7 +37,7 @@ ECR: $(cd terraform && terraform output -raw ecr_repository_url)
 Deploy role: $(cd terraform && terraform output -raw github_deployer_role_arn)
 RDS host: $(cd terraform && terraform output -raw rds_endpoint)
 
-Set these GitHub repository variables before deploying:
+Set these GitHub classroom environment variables before deploying:
 AWS_REGION=$region
 AWS_DEPLOY_ROLE_ARN=$(cd terraform && terraform output -raw github_deployer_role_arn)
 EKS_CLUSTER_NAME=$cluster

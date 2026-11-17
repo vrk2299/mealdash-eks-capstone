@@ -24,24 +24,33 @@ jobs:
 
   deploy:
     if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') &&
-      vars.AWS_DEPLOY_ROLE_ARN != '' && vars.AWS_REGION != '' && vars.EKS_CLUSTER_NAME != '' && vars.ECR_REPOSITORY != '' &&
-      vars.DB_HOST != '' && vars.DB_NAME != '' && vars.DB_USER != ''
+      github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build-check
     runs-on: ubuntu-latest
     environment: classroom
     permissions:
       contents: read
       id-token: write
-    env:
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
-      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-      DB_HOST: ${{ vars.DB_HOST }}
-      DB_NAME: ${{ vars.DB_NAME }}
-      DB_USER: ${{ vars.DB_USER }}
     steps:
       - uses: actions/checkout@v6
+      - name: Validate classroom deployment configuration
+        env:
+          AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          DB_HOST: ${{ vars.DB_HOST }}
+          DB_NAME: ${{ vars.DB_NAME }}
+          DB_USER: ${{ vars.DB_USER }}
+        run: |
+          set -euo pipefail
+          : "${AWS_DEPLOY_ROLE_ARN:?Missing classroom environment variable AWS_DEPLOY_ROLE_ARN}"
+          : "${AWS_REGION:?Missing classroom environment variable AWS_REGION}"
+          : "${EKS_CLUSTER_NAME:?Missing classroom environment variable EKS_CLUSTER_NAME}"
+          : "${ECR_REPOSITORY:?Missing classroom environment variable ECR_REPOSITORY}"
+          : "${DB_HOST:?Missing classroom environment variable DB_HOST}"
+          : "${DB_NAME:?Missing classroom environment variable DB_NAME}"
+          : "${DB_USER:?Missing classroom environment variable DB_USER}"
       - name: Configure short-lived AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
@@ -54,14 +63,22 @@ jobs:
         id: image
         env:
           REGISTRY: ${{ steps.ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           docker build --pull -t "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
           docker push "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           echo "uri=$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
       - name: Configure namespace deployment access
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
         run: aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
       - name: Apply database connection settings
+        env:
+          DB_HOST: ${{ vars.DB_HOST }}
+          DB_NAME: ${{ vars.DB_NAME }}
+          DB_USER: ${{ vars.DB_USER }}
         run: |
           set -euo pipefail
           kubectl create configmap mealdash-config -n mealdash --from-literal=DB_HOST="$DB_HOST" --from-literal=DB_PORT=3306 --from-literal=DB_NAME="$DB_NAME" --from-literal=DB_USER="$DB_USER" --dry-run=client -o yaml | kubectl apply --server-side --force-conflicts -f -

@@ -42,18 +42,15 @@ AWS resources are not created until the launch script is run. EKS, RDS, NAT Gate
 
 On the instructor host install AWS CLI v2, Terraform 1.5.7+, `kubectl`, Helm 3, `eksctl`, `curl`, `openssl`, Python 3, Docker, and Git. Configure an AWS identity authorized to create the listed resources and pass the EKS roles. Do not give students permanent administrator access.
 
-Create a **separate public repository** named `mealdash-eks-capstone` under `vrk2299` and push its `main` branch. Retrieve immutable GitHub owner and repository IDs after creation. Copy `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars`, fill the numeric IDs, and keep that file private (it is ignored by Git).
+Create a **separate public repository** named `mealdash-eks-capstone` under `vrk2299` and push its `main` branch. Copy `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars`; keep that file private (it is ignored by Git).
 
 ```bash
 git clone https://github.com/vrk2299/mealdash-eks-capstone.git
 cd mealdash-eks-capstone
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
-bash scripts/get-github-ids.sh vrk2299 mealdash-eks-capstone
 ```
 
-Fill `github_owner_id` and `github_repository_id` in `terraform/terraform.tfvars`. Then run the guarded setup script. It shows a Terraform plan and requires the phrase `CREATE MEALDASH` before applying.
-
-Get the numeric IDs with `bash scripts/get-github-ids.sh vrk2299 mealdash-eks-capstone` and copy the two values it prints into the tfvars file.
+Run the guarded setup script. It creates or reuses a versioned, private S3 Terraform state bucket, shows a Terraform plan, and requires the phrase `CREATE MEALDASH` before applying. Reusing the backend prevents a fresh clone from losing track of existing AWS resources.
 
 ```bash
 bash scripts/start-lab.sh
@@ -63,7 +60,7 @@ The script provisions the isolated network, cluster, RDS, ECR and IAM deploy rol
 
 ### GitHub Actions setup
 
-In the repository, create a GitHub Actions environment named `classroom`. Add these **repository variables** under Settings > Secrets and variables > Actions. Do not put AWS keys, the database password, or app secrets in GitHub.
+The repository already has a GitHub Actions environment named `classroom`. These values must be **environment variables** under Settings > Environments > classroom, because the deploy job uses that environment. Do not put AWS keys, the database password, or app secrets in GitHub.
 
 | Variable | Value |
 | --- | --- |
@@ -75,7 +72,7 @@ In the repository, create a GitHub Actions environment named `classroom`. Add th
 | `DB_NAME` | `mealdash` |
 | `DB_USER` | `mealdash_admin` |
 
-Pull requests build the container only. A push to `main` or `workflow_dispatch` can deploy when variables are present. GitHub Actions assumes a repository/environment-restricted AWS role via OIDC, pushes a unique immutable tag, applies a ConfigMap and the Kustomize workload, then waits for rollout. The workflow does not read runtime Kubernetes Secrets.
+Pull requests build the container only. A push to `main` or `workflow_dispatch` deploys through the `classroom` environment. Missing environment variables fail a validation step with a clear error instead of silently skipping the deploy job. GitHub Actions assumes a repository/environment-restricted AWS role via OIDC, pushes a unique immutable tag, applies a ConfigMap and the Kustomize workload, then waits for rollout. The workflow does not read runtime Kubernetes Secrets.
 
 After the first successful deployment, get the temporary application URL:
 

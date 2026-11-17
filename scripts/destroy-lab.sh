@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$root"
+bash "$root/scripts/ensure-state-backend.sh"
 cd "$root/terraform"
 cluster="$(terraform output -raw cluster_name)"
 region="$(terraform output -raw aws_region)"

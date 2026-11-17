@@ -84,13 +84,14 @@ module "eks" {
 
   eks_managed_node_groups = {
     classroom = {
-      name           = "${var.name}-classroom"
-      instance_types = [var.node_instance_type]
-      capacity_type  = "ON_DEMAND"
-      min_size       = 1
-      max_size       = 2
-      desired_size   = 1
-      subnet_ids     = module.vpc.private_subnets
+      name               = "${var.name}-classroom"
+      kubernetes_version = var.kubernetes_version
+      instance_types     = [var.node_instance_type]
+      capacity_type      = "ON_DEMAND"
+      min_size           = 1
+      max_size           = 2
+      desired_size       = 1
+      subnet_ids         = module.vpc.private_subnets
     }
   }
 
@@ -181,7 +182,7 @@ data "aws_iam_policy_document" "github_assume" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_owner}@${var.github_owner_id}/${var.github_repository}@${var.github_repository_id}:environment:classroom"]
+      values   = ["repo:${var.github_owner}/${var.github_repository}:environment:classroom"]
     }
   }
 }
