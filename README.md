@@ -113,4 +113,4 @@ RDS is configured without a final snapshot, so destruction permanently deletes i
 - EKS API public access is enabled without a source-CIDR restriction; narrow it to an instructor/admin address or use private connectivity for durable environments.
 - Runtime Kubernetes Secret data is not encrypted by base64; enable EKS KMS envelope encryption and strict access controls for production.
 - MySQL is private and allows port 3306 only from the EKS node security group, but is single-AZ and has no retained backups in this disposable setup.
-- Use a throwaway staff password and synthetic order data. No real customer personal data or payments belong in this classroom app.
+- Use a throwaway staff password and synthetic order data. No real customer personal data or payments belong in this classroom app. v1
